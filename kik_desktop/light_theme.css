@@ -1,0 +1,107 @@
+/**
+    General
+ */
+QStackedWidget {
+    background-color: #EEE;
+}
+
+QListView {
+    font: 14px;
+    border: none;
+    color: #333;
+}
+
+QSplitter::handle {
+    background-color: #FAFAFA;
+    background-color: white;
+    border-right: 1px solid #ddd;
+}
+
+QLineEdit {
+    background-color: white;
+    color: black;
+    border-radius: 0;
+    border: none;
+    font: 14px;
+    padding-left: 10px;
+}
+
+/**
+    Peer list
+ */
+QListView#peerList {
+    background-color: #FAFAFA;
+}
+
+QListView#peerList::item {
+    height: 40px;
+    border-left: 0px solid transparent;
+    padding-left: 10px;
+}
+
+QListView#peerList::item:selected {
+    height: 40px;
+}
+
+QListView#peerList::item:hover {
+}
+
+QListView#peerList::item:selected {
+    background-color: #29bdff;
+}
+
+/**
+    Message box
+ */
+QListView#messageBox {
+    background-color: white;
+}
+
+QListView#messageBox::item {
+    padding-left: 10px;
+    color: #333;
+    height: 30px;
+}
+
+QWidget#messageContainer {
+}
+
+QWidget#typingContainer {
+    border-top: 2px solid #DDD;
+    background-color: #EEE;
+}
+
+QLineEdit#typingBox {
+    height: 30px;
+    font: 18px;
+    padding: 8px 16px;
+    border-radius: 6px;
+}
+
+QWidget#message {
+    background-color: white;
+    border: 1px solid #DDD;
+    border-radius: 10px;
+    border-bottom: 1px solid #AAA;
+}
+
+QWidget#ownMessage {
+    background-color: #59c817;
+    color: white;
+    border: 1px solid #DDD;
+    border-radius: 10px;
+    border-bottom: 1px solid #AAA;
+}
+
+QWidget#message QLabel {
+    font: 16px;
+}
+
+QWidget#ownMessage QLabel {
+    color: white;
+    font: 16px;
+}
+
+QLabel#nameLabel {
+    font: bold;
+}

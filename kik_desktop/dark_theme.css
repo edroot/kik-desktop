@@ -1,0 +1,60 @@
+QStackedWidget {
+    background-color: #EEE;
+}
+
+QListView {
+    font: 14px;
+    border: none;
+    color: #DDD;
+}
+
+QListView#peerList {
+    background-color: #FAFAFA;
+    background-color: #263238;
+}
+
+QListView#peerList::item {
+    height: 40px;
+    border-left: 0px solid transparent;
+    padding-left: 10px;
+}
+
+QListView#peerList::item:selected {
+    height: 40px;
+    border-left: 4px solid #59c817;
+    padding-left: 6px;
+}
+
+QListView#peerList::item:hover {
+}
+
+QListView#peerList::item:selected {
+    background-color: #29bdff;
+    background-color: #0d293e;
+}
+
+QListView#messageBox {
+    background-color: EEE;
+    background-color: #282c34;
+}
+
+QListView#messageBox::item {
+    padding-left: 10px;
+    color: white;
+    height: 30px;
+}
+
+QSplitter::handle {
+    background-color: white;
+    background-color: #263238;
+    border-right: 1px solid #1f262a;
+}
+
+QLineEdit {
+    background-color: #263238;
+    border-radius: 0;
+    border: none;
+    color: white;
+    font: 14px;
+    padding-left: 10px;
+}
