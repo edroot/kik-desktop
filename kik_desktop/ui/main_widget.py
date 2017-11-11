@@ -218,7 +218,7 @@ class OnlinePixmapThread(QThread):
     def run(self):
         cache_dir = user_cache_dir('kik_desktop')
         if not os.path.exists(cache_dir):
-            os.mkdir(cache_dir)
+            os.makedirs(cache_dir)
         path = cache_dir + "/" + hashlib.md5(self.url.encode('utf-8')).hexdigest() + ".jpg"
         if os.path.exists(path):
             self.pixmap = QPixmap(path)

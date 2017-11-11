@@ -40,12 +40,13 @@ setup(
     },
 
     package_data={
-        'kik_desktop': [],
+        'kik_desktop': ['light_theme.css'],
     },
+    include_package_data=True,
 
     entry_points={
         'console_scripts': [
-            'kik-desktop=kik_desktop.app:execute',
+            'kik-desktop=kik_desktop.kik_desktop:execute',
         ],
     },
 )

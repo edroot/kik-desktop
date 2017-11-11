@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 import json
 from collections import OrderedDict
 
@@ -14,7 +13,7 @@ from kik_desktop.ui.main_widget import MainWidget, MessageItem, PeerListItem
 from kik_desktop.util import load_stylesheet
 
 
-class App(QMainWindow):
+class KikDesktop(QMainWindow):
     def __init__(self):
         super().__init__()
 
@@ -175,7 +174,7 @@ class App(QMainWindow):
                 if peer['display_name']:
                     return "{}".format(peer['display_name'])
                 else:
-                    return "Group: " + ", ".join([App.jid_to_username(member['jid']) for member in peer['users']])
+                    return "Group: " + ", ".join([KikDesktop.jid_to_username(member['jid']) for member in peer['users']])
         else:
             return "{} ({})".format(peer['display_name'], peer['username'])
 
@@ -190,7 +189,7 @@ class App(QMainWindow):
 
 def execute():
     app = QApplication(sys.argv)
-    ex = App()
+    ex = KikDesktop()
     ex.setStyleSheet(load_stylesheet('light_theme.css'))
     sys.exit(app.exec_())
 
