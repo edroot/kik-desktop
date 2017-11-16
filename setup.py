@@ -21,14 +21,20 @@ setup(
     author='Jaap Heijligers',
     author_email='mail@heijligers.me',
 
-    license='MIT',
+    license='GPLv2',
 
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Programming Language :: Python :: 3',
+
+        'Intended Audience :: End Users/Desktop',
+
+        'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
+
+        'Topic :: Communications :: Chat',
     ],
 
-    keywords='kik desktop im',
+    keywords='kik desktop chat',
 
     packages=find_packages(exclude=['docs', 'test']),
 
