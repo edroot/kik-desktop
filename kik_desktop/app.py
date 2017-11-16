@@ -19,7 +19,6 @@ class KikDesktop(QMainWindow):
 
         self.main_widget = MainWidget()
         self.central_widget = QStackedWidget()
-        # sys.excepthook = self.on_exception
 
         self.partners = {}
         self.messages = {}
@@ -31,11 +30,6 @@ class KikDesktop(QMainWindow):
 
         self.load_config()
         self.init_ui()
-
-    # def on_exception(self, *args):
-    #     print("Exception args: {}".format(*args))
-    #     (type, value, traceback) = sys.exc_info()
-    #     sys.excepthook(type, value, traceback)
 
     def init_kik_thread(self):
         self.kik_thread.received_message.connect(self.message_received)
@@ -174,7 +168,8 @@ class KikDesktop(QMainWindow):
                 if peer['display_name']:
                     return "{}".format(peer['display_name'])
                 else:
-                    return "Group: " + ", ".join([KikDesktop.jid_to_username(member['jid']) for member in peer['users']])
+                    return "Group: " + ", ".join(
+                        [KikDesktop.jid_to_username(member['jid']) for member in peer['users']])
         else:
             return "{} ({})".format(peer['display_name'], peer['username'])
 

@@ -32,7 +32,7 @@ setup(
 
     packages=find_packages(exclude=['docs', 'test']),
 
-    install_requires=['PyQt5', 'appdirs'],
+    install_requires=['PyQt5', 'appdirs', 'kik-unofficial'],
 
     extras_require={
         'dev': [],
@@ -46,7 +46,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'kik-desktop=kik_desktop.kik_desktop:execute',
+            'kik-desktop=kik_desktop.app:execute',
         ],
     },
 )
