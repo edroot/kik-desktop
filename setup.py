@@ -11,7 +11,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='kik_desktop',
 
-    version='0.0.1',
+    version='0.0.2',
 
     description='Kik Desktop',
     long_description=long_description,
