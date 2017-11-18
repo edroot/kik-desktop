@@ -27,6 +27,7 @@ class KikDesktop(QMainWindow):
         self.current_peer = None
         self.config = None
         self.kik_thread = None
+        self.is_typing = False
 
         self.load_config()
         self.init_ui()
@@ -45,6 +46,7 @@ class KikDesktop(QMainWindow):
 
         self.main_widget.peer_list.currentItemChanged.connect(self.on_peer_changed)
         self.main_widget.typing_box.returnPressed.connect(self.send_message)
+        self.main_widget.typing_box.textChanged.connect(self.typing_box_text_changed)
 
         self.login_widget = LoginWidget(self)
         self.login_widget.login_request.connect(self.login)
@@ -56,6 +58,15 @@ class KikDesktop(QMainWindow):
         if 'username' in self.config:
             self.login(self.config['username'], self.config['password'])
         self.show()
+
+    def typing_box_text_changed(self, text):
+        if text and not self.is_typing:
+            print("Typing started")
+            self.send_is_typing(True)
+        elif not text and self.is_typing:
+            print("Typing stopped")
+            self.send_is_typing(False)
+        self.is_typing = not not text
 
     def login(self, username, password):
         print("Attempt login")
@@ -96,6 +107,19 @@ class KikDesktop(QMainWindow):
         index = self.peer_list.currentIndex().row()
         self.current_peer = list(self.partners.values())[index]
         self.update_message_list()
+        self.handle_peer_read_confirmation()
+
+    def handle_peer_read_confirmation(self):
+        if self.current_peer['jid'] not in self.messages:
+            return
+        if self.current_peer['type'] == 'group':
+            # TODO: groupchat confirmations
+            return
+        message = self.messages[self.current_peer['jid']][-1]
+        if message and 'message_id' in message and message['message_id'] and 'read' not in message:
+            self.kik_thread.send_read_confirmation_signal.emit(self.current_peer['jid'], message['message_id'])
+            message['read'] = True
+            self.save()
 
     def update_message_list(self):
         for i in reversed(range(self.message_list.count())):
@@ -111,26 +135,32 @@ class KikDesktop(QMainWindow):
         sender = self.sender()
         message = sender.text()
         sender.clear()
-        self.add_message(self.current_peer['jid'], 'You', message)
+        self.add_message(self.current_peer['jid'], 'You', message, None)
         self.update_message_list()
         self.kik_thread.send_message_signal.emit(self.current_peer['jid'], message,
                                                  self.current_peer['type'] == 'group')
 
-    def add_message(self, chat, peer, message):
+    def send_is_typing(self, is_typing):
+        self.kik_thread.send_is_typing_signal.emit(self.current_peer['jid'], is_typing,
+                                                   self.current_peer['type'] == 'group')
+
+    def add_message(self, chat, peer, message, message_id):
         if chat not in self.messages:
             self.messages[chat] = []
         self.messages[chat].append({
             'user': peer,
-            'body': message
+            'body': message,
+            'message_id': message_id
         })
         self.save()
 
-    def message_received(self, peer, message):
-        self.add_message(peer, peer, message)
+    def message_received(self, peer, message, message_id):
+        self.add_message(peer, peer, message, message_id)
         self.update_message_list()
+        self.handle_peer_read_confirmation()
 
-    def group_message_received(self, chat, peer, message):
-        self.add_message(chat, peer, message)
+    def group_message_received(self, chat, peer, message, message_id):
+        self.add_message(chat, peer, message, message_id)
         self.update_message_list()
 
     def on_login(self):
