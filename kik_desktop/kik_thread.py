@@ -31,7 +31,7 @@ class KikThread(QThread):
 
     def send_is_typing(self, user, is_typing, groupchat):
         print("Sending is typing for {} {} {} ".format(user, is_typing, groupchat))
-        self.is_typing_queue.append([user, is_typing, groupchat])
+        self.is_typing_queue.append([user, "true" if is_typing else "false", groupchat])
 
     def run_queue(self):
         """
