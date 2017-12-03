@@ -1,4 +1,34 @@
 /**
+    Login form
+ */
+QLabel {
+    font: 20px;
+    color: #333;
+}
+
+QLabel#errorLabel {
+    color: red;
+}
+
+QLineEdit {
+    background-color: white;
+    border: 1px solid #DDD;
+    padding: 5px 10px;
+    width: 300px;
+    color: #333;
+    font: bold 16px;
+    border-radius: 0px;
+}
+
+QPushButton {
+    background-color: #59c817;
+    border: none;
+    color: white;
+    font: 18px;
+    padding: 12px 20px;
+}
+
+/**
     General
  */
 QStackedWidget {

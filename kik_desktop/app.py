@@ -1,15 +1,17 @@
 #!/usr/bin/python3
 import json
+import traceback
 from collections import OrderedDict
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from appdirs import *
-from kik_unofficial.kikclient import KikClient
+from kik_unofficial.kikclient import KikClient, KikErrorException, DebugLevel
 
 from kik_desktop.kik_thread import KikThread
 from kik_desktop.ui.login_widget import LoginWidget
 from kik_desktop.ui.main_widget import MainWidget, MessageItem, PeerListItem
+from kik_desktop.ui.register_widget import RegisterWidget
 from kik_desktop.util import load_stylesheet
 
 
@@ -50,6 +52,7 @@ class KikDesktop(QMainWindow):
 
         self.login_widget = LoginWidget(self)
         self.login_widget.login_request.connect(self.login)
+        self.login_widget.register_account.connect(self.show_registration_widget)
 
         self.central_widget.addWidget(self.login_widget)
         self.central_widget.addWidget(self.main_widget)
@@ -58,6 +61,12 @@ class KikDesktop(QMainWindow):
         if 'username' in self.config:
             self.login(self.config['username'], self.config['password'])
         self.show()
+
+    def show_registration_widget(self):
+        self.registration_widget = RegisterWidget()
+        self.registration_widget.login_request.connect(self.login)
+        self.central_widget.addWidget(self.registration_widget)
+        self.central_widget.setCurrentWidget(self.registration_widget)
 
     def typing_box_text_changed(self, text):
         if text and not self.is_typing:
@@ -71,9 +80,10 @@ class KikDesktop(QMainWindow):
     def login(self, username, password):
         print("Attempt login")
         try:
-            kik_client = KikClient(username, password)
-        except:
+            kik_client = KikClient(username, password, debug_level=DebugLevel.VERBOSE)
+        except Exception as e:
             print("Login failed")
+            traceback.print_exc()
             self.login_widget.login_failed()
             return
         self.kik_thread = KikThread(kik_client)

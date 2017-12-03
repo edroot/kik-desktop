@@ -2,42 +2,20 @@ import sys
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QLineEdit, QPushButton, QVBoxLayout, QLabel, QApplication
+from kik_desktop.util import load_stylesheet
 
 
 class LoginWidget(QWidget):
     login_request = pyqtSignal(str, str)
+    register_account = pyqtSignal()
 
     def __init__(self, parent=None):
         super(LoginWidget, self).__init__(parent)
         self.login_button = QPushButton()
+        self.register_button = QPushButton()
         self.error_label = QLabel()
         self.username_field = QLineEdit()
         self.password_field = QLineEdit()
-        self.setStyleSheet("""
-QLabel {
-font: 20px;
-color: #333;
-}
-QLabel#errorLabel {
-color: red;
-}
-QLineEdit {
-background-color: white;
-border: 1px solid #DDD;
-padding: 5px 10px;
-width: 300px;
-color: #333;
-font: bold 16px;
-border-radius: 0px;
-}
-QPushButton {
-background-color: #59c817;
-border: none;
-color: white;
-font: 18px;
-padding: 12px 20px;
-}
-        """)
         self.init_ui()
 
     def init_ui(self):
@@ -46,24 +24,27 @@ padding: 12px 20px;
         main_box.setAlignment(Qt.AlignCenter)
 
         label = QLabel("Log in to Kik")
+        main_box.addWidget(label, alignment=Qt.AlignCenter)
 
         self.username_field.setPlaceholderText("Email or Kik Username")
         self.username_field.returnPressed.connect(self.username_field_return_pressed)
+        main_box.addWidget(self.username_field, alignment=Qt.AlignCenter)
 
         self.password_field.setPlaceholderText("Password")
         self.password_field.setEchoMode(QLineEdit.Password)
         self.password_field.returnPressed.connect(self.password_field_return_pressed)
+        main_box.addWidget(self.password_field, alignment=Qt.AlignCenter)
 
         self.login_button.setText("Sign in")
         self.login_button.clicked.connect(self.login_button_clicked)
+        main_box.addWidget(self.login_button, alignment=Qt.AlignCenter)
 
         self.error_label.setObjectName("errorLabel")
-
-        main_box.addWidget(label, alignment=Qt.AlignCenter)
-        main_box.addWidget(self.username_field, alignment=Qt.AlignCenter)
-        main_box.addWidget(self.password_field, alignment=Qt.AlignCenter)
-        main_box.addWidget(self.login_button, alignment=Qt.AlignCenter)
         main_box.addWidget(self.error_label, alignment=Qt.AlignCenter)
+
+        self.register_button.setText("Register account")
+        self.register_button.clicked.connect(self.register_account)
+        main_box.addWidget(self.register_button, alignment=Qt.AlignCenter)
 
         self.setLayout(main_box)
         self.show()
@@ -118,5 +99,6 @@ padding: 12px 20px;
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = LoginWidget()
+    ex.setStyleSheet(load_stylesheet('light_theme.css'))
     ex.show()
     sys.exit(app.exec_())
