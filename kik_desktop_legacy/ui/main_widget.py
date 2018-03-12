@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget, QListWidget, QHBoxLayout, QSplitter, QLineE
     QLabel, QScrollArea, QLayout, QApplication, QListWidgetItem
 from appdirs import user_cache_dir
 
-from kik_desktop.util import load_stylesheet
+from kik_desktop_legacy.util import load_stylesheet
 
 
 class MainWidget(QWidget):
@@ -216,7 +216,7 @@ class OnlinePixmapThread(QThread):
         self.wait()
 
     def run(self):
-        cache_dir = user_cache_dir('kik_desktop')
+        cache_dir = user_cache_dir('kik_desktop_legacy')
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
         path = cache_dir + "/" + hashlib.md5(self.url.encode('utf-8')).hexdigest() + ".jpg"

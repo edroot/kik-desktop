@@ -3,14 +3,15 @@ import sys
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtGui import QValidator
 from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlRequestInfo
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWidgets import QWidget, QLineEdit, QPushButton, QLabel, QApplication, QVBoxLayout, \
     QDateEdit, QHBoxLayout
 from kik_unofficial.kik_exceptions import KikCaptchaException
-from kik_unofficial.kikclient import KikClient, KikErrorException
+from kik_unofficial.kikclient import KikClient
 
-from kik_desktop.util import load_stylesheet
+from kik_desktop_legacy.util import load_stylesheet
 
 
 class RegisterWidget(QWidget):
@@ -46,6 +47,7 @@ class RegisterWidget(QWidget):
         main_box.addWidget(self.last_name_edit, alignment=Qt.AlignCenter)
 
         self.username_edit.setPlaceholderText("Username")
+        self.username_edit.setValidator(UserNameValidator(self.kik_client))
         main_box.addWidget(self.username_edit, alignment=Qt.AlignCenter)
 
         self.email_edit.setPlaceholderText("Email")
@@ -87,7 +89,7 @@ class RegisterWidget(QWidget):
         birthday = self.birthday_edit.date()
         try:
             self.kik_client.sign_up(email, username, password, first_name, last_name,
-                                          birthday.toString("yyyy-MM-dd"))
+                                    birthday.toString("yyyy-MM-dd"))
         except KikCaptchaException as e:
             url = e.captcha_url + "&callback_url=https://kik.com/captcha-url"
             self.webview.load(QUrl(url))
@@ -117,6 +119,22 @@ class RegisterWidget(QWidget):
             self.login_request.emit(username, password)
         except:
             self.error_label.setText("Account creation failed")
+
+
+class UserNameValidator(QValidator):
+    def __init__(self, kik_client: KikClient):
+        super().__init__()
+        self.kik_client = kik_client
+
+    def validate(self, username, pos):
+        if len(username) < 5:
+            return QValidator.Intermediate, str(username), pos
+        res = self.kik_client.validate_username_for_registration(username)
+        print(res)
+        if res:
+            return QValidator.Acceptable, str(username), pos
+        else:
+            return QValidator.Intermediate, str(username), pos
 
 
 class RequestInterceptor(QWebEngineUrlRequestInterceptor):

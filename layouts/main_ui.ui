@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>640</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">#centralwidget {
+	border-top: 6px solid #5dcd11;
+	background-color: #FFFFFF;
+}
+
+QListWidget {
+	border: 0px;
+}
+
+QLineEdit {
+	border: none;
+}
+
+QSplitter::handle:horizontal {
+	border-right: 1px solid #DDD;
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">padding-top: 6px;</string>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="horizontalLayoutWidget">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_2">
+          <property name="styleSheet">
+           <string notr="true">margin: 10px;
+background-color: rgb(242, 242, 242);
+padding: 4px;
+border-radius: 6px;</string>
+          </property>
+          <property name="frame">
+           <bool>true</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Search</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="users">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="horizontalLayoutWidget_2">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="userLabel">
+          <property name="styleSheet">
+           <string notr="true">font-weight: bold;
+margin: 10px;</string>
+          </property>
+          <property name="text">
+           <string>Username</string>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+          <property name="margin">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="messages">
+          <property name="styleSheet">
+           <string notr="true">#messages {
+	background-color: rgb(223, 229, 219);
+}
+
+QWidget#message {
+    background-color: white;
+    border: 1px solid #DDD;
+    border-radius: 4px;
+}
+
+QWidget#ownMessage {
+    background-color: #59c817;
+    color: white;
+    border: 1px solid #DDD;
+    border-radius: 4px;
+}
+
+QWidget#message QLabel {
+    font: 12px;
+}
+
+QWidget#ownMessage QLabel {
+    color: white;
+    font: 12px;
+}
+
+QLabel#nameLabel {
+    font: bold;
+}
+</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="messageEdit">
+          <property name="styleSheet">
+           <string notr="true">padding: 8px;
+font-size: 14px;</string>
+          </property>
+          <property name="placeholderText">
+           <string>Write a message...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>19</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

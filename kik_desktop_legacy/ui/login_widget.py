@@ -2,7 +2,7 @@ import sys
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QLineEdit, QPushButton, QVBoxLayout, QLabel, QApplication
-from kik_desktop.util import load_stylesheet
+from kik_desktop_legacy.util import load_stylesheet
 
 
 class LoginWidget(QWidget):

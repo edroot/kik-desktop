@@ -1,233 +1,271 @@
-#!/usr/bin/python3
 import json
-import traceback
-from collections import OrderedDict
+import logging
+import os
+import sys
+import time
+from typing import List
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import *
-from appdirs import *
-from kik_unofficial.kikclient import KikClient, KikErrorException, DebugLevel
+import appdirs
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidgetItem
+from kik_unofficial.callbacks import KikClientCallback
+from kik_unofficial.client import KikClient
+from kik_unofficial.datatypes.errors import SignUpError, LoginError
+from kik_unofficial.datatypes.peers import Peer, Group, User
+from kik_unofficial.datatypes.xmpp.chatting import IncomingStatusResponse, IncomingGroupReceiptsEvent, IncomingGroupStatus, IncomingIsTypingEvent, \
+    IncomingChatMessage, IncomingGroupIsTypingEvent, IncomingMessageDeliveredEvent, IncomingMessageReadEvent, IncomingFriendAttribution, \
+    IncomingGroupChatMessage
+from kik_unofficial.datatypes.xmpp.roster import FetchRosterResponse, PeerInfoResponse
+from kik_unofficial.datatypes.xmpp.sign_up import ConnectionFailedResponse, RegisterResponse, UsernameUniquenessResponse, LoginResponse
 
-from kik_desktop.kik_thread import KikThread
-from kik_desktop.ui.login_widget import LoginWidget
-from kik_desktop.ui.main_widget import MainWidget, MessageItem, PeerListItem
-from kik_desktop.ui.register_widget import RegisterWidget
-from kik_desktop.util import load_stylesheet
+from kik_desktop.message_item import MessageItem
+from kik_desktop.peer_list_item import PeerListItem
+from kik_desktop.ui import login_ui, main_ui
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('kik_desktop')
+
+config_file = appdirs.user_config_dir() + '/kik_desktop.json'
+config = {
+    'messages': {}
+}
 
 
-class KikDesktop(QMainWindow):
-    def __init__(self):
-        super().__init__()
+class App(QMainWindow):
+    on_authorized_signal = pyqtSignal()
+    peers_updated_signal = pyqtSignal()
+    messages_updated_signal = pyqtSignal(str)
 
-        self.main_widget = MainWidget()
-        self.central_widget = QStackedWidget()
-
-        self.partners = {}
-        self.messages = {}
-        self.peer_list = None
-        self.message_list = None
-        self.current_peer = None
-        self.config = None
-        self.kik_thread = None
-        self.is_typing = False
-
-        self.load_config()
-        self.init_ui()
-
-    def init_kik_thread(self):
-        self.kik_thread.received_message.connect(self.message_received)
-        self.kik_thread.received_group_message.connect(self.group_message_received)
-        self.kik_thread.on_login.connect(self.on_login)
-        if True:
-            self.kik_thread.start()
-
-    def init_ui(self):
-        self.setCentralWidget(self.central_widget)
-        self.peer_list = self.main_widget.peer_list
-        self.message_list = self.main_widget.message_list
-
-        self.main_widget.peer_list.currentItemChanged.connect(self.on_peer_changed)
-        self.main_widget.typing_box.returnPressed.connect(self.send_message)
-        self.main_widget.typing_box.textChanged.connect(self.typing_box_text_changed)
-
-        self.login_widget = LoginWidget(self)
-        self.login_widget.login_request.connect(self.login)
-        self.login_widget.register_account.connect(self.show_registration_widget)
-
-        self.central_widget.addWidget(self.login_widget)
-        self.central_widget.addWidget(self.main_widget)
-        self.setGeometry(0, 0, 920, 640)
-        self.setWindowTitle('Kik')
-        if 'username' in self.config:
-            self.login(self.config['username'], self.config['password'])
-        self.show()
-
-    def show_registration_widget(self):
-        self.registration_widget = RegisterWidget()
-        self.registration_widget.login_request.connect(self.login)
-        self.central_widget.addWidget(self.registration_widget)
-        self.central_widget.setCurrentWidget(self.registration_widget)
-
-    def typing_box_text_changed(self, text):
-        if text and not self.is_typing:
-            print("Typing started")
-            self.send_is_typing(True)
-        elif not text and self.is_typing:
-            print("Typing stopped")
-            self.send_is_typing(False)
-        self.is_typing = not not text
-
-    def login(self, username, password):
-        print("Attempt login")
-        try:
-            kik_client = KikClient(username, password, debug_level=DebugLevel.VERBOSE)
-        except Exception as e:
-            print("Login failed")
-            traceback.print_exc()
-            self.login_widget.login_failed()
-            return
-        self.kik_thread = KikThread(kik_client)
-        self.init_kik_thread()
-        self.kik_thread.start()
-        self.central_widget.setCurrentWidget(self.main_widget)
-        self.config['username'] = username
-        self.config['password'] = password
-        self.save()
-
-    def save(self):
-        self.config['messages'] = self.messages
-        config_dir = user_config_dir()
-        filename = os.path.join(config_dir, 'kik_desktop.json')
-        with open(filename, 'w') as file:
-            json.dump(self.config, file)
-
-    def load_config(self):
-        config_dir = user_config_dir()
-        filename = os.path.join(config_dir, 'kik_desktop.json')
-
-        if not os.path.exists(filename):
-            print("kik_desktop.json not found at %s" % filename)
-            self.config = {'messages': {}}
-            return False
-        with open(filename, 'r') as file:
-            self.config = json.load(file)
-            self.messages = self.config['messages']
-
-    def on_peer_changed(self, curr, prev):
-        index = self.peer_list.currentIndex().row()
-        self.current_peer = list(self.partners.values())[index]
-        self.update_message_list()
-        self.handle_peer_read_confirmation()
-
-    def handle_peer_read_confirmation(self):
-        if self.current_peer['jid'] not in self.messages:
-            return
-        if self.current_peer['type'] == 'group':
-            # TODO: groupchat confirmations
-            return
-        message = self.messages[self.current_peer['jid']][-1]
-        if message and 'message_id' in message and message['message_id'] and 'read' not in message:
-            self.kik_thread.send_read_confirmation_signal.emit(self.current_peer['jid'], message['message_id'])
-            message['read'] = True
-            self.save()
-
-    def update_message_list(self):
-        for i in reversed(range(self.message_list.count())):
-            self.message_list.itemAt(i).widget() and self.message_list.itemAt(i).widget().deleteLater()
-        if self.current_peer['jid'] not in self.messages:
-            return
-        messages = self.messages[self.current_peer['jid']]
-        for message in messages:
-            item = MessageItem(self.get_display_name(message['user']), message['body'])
-            self.message_list.addWidget(item)
-
-    def send_message(self):
-        sender = self.sender()
-        message = sender.text()
-        sender.clear()
-        self.add_message(self.current_peer['jid'], 'You', message, None)
-        self.update_message_list()
-        self.kik_thread.send_message_signal.emit(self.current_peer['jid'], message,
-                                                 self.current_peer['type'] == 'group')
-
-    def send_is_typing(self, is_typing):
-        self.kik_thread.send_is_typing_signal.emit(self.current_peer['jid'], is_typing,
-                                                   self.current_peer['type'] == 'group')
-
-    def add_message(self, chat, peer, message, message_id):
-        if chat not in self.messages:
-            self.messages[chat] = []
-        self.messages[chat].append({
-            'user': peer,
-            'body': message,
-            'message_id': message_id
-        })
-        self.save()
-
-    def message_received(self, peer, message, message_id):
-        self.add_message(peer, peer, message, message_id)
-        self.update_message_list()
-        self.handle_peer_read_confirmation()
-
-    def group_message_received(self, chat, peer, message, message_id):
-        self.add_message(chat, peer, message, message_id)
-        self.update_message_list()
-
-    def on_login(self):
-        print("On login")
-        partners = self.kik_thread.partners
-        self.partners = OrderedDict(partners)
-        sorted_keys = sorted(self.partners, key=lambda e: self.full_name(self.partners[e]))
-        [self.partners.move_to_end(key) for key in sorted_keys]
-        for jid in self.partners:
-            partner = self.partners[jid]
-            item = PeerListItem()
-            item.set_title_label(self.full_name(partner))
-            if 'picture_url' in partner and partner['picture_url'] is not None:
-                item.set_icon(partner['picture_url'] + "/thumb.jpg")
-            self.main_widget.add_item(item)
-        if self.peer_list.count() > 0:
-            self.peer_list.setCurrentRow(0)
-
-    def get_name(self, jid):
-        if jid in self.partners.keys():
-            return self.full_name(self.partners[jid])
-        return jid
-
-    def get_display_name(self, jid):
-        if jid in self.partners.keys():
-            return self.partners[jid]['display_name']
-        return jid
-
-    @staticmethod
-    def full_name(peer):
-        if peer['type'] == 'group':
-            if peer['public']:
-                return "{} ({})".format(peer['display_name'], peer['code'])
+    def __init__(self, parent=None):
+        super(App, self).__init__(parent)
+        global kik_client
+        self.main_ui = main_ui.Ui_MainWindow()
+        self.login_ui = login_ui.Ui_LoginWindow()
+        if 'username' in config and 'password' in config:
+            self.main_ui.setupUi(self)
+            if 'node' in config:
+                kik_client = KikClient(KikCallback(), config['username'], config['password'], config['node'], log_level=logging.DEBUG)
             else:
-                if peer['display_name']:
-                    return "{}".format(peer['display_name'])
-                else:
-                    return "Group: " + ", ".join(
-                        [KikDesktop.jid_to_username(member['jid']) for member in peer['users']])
+                kik_client = KikClient(KikCallback(), config['username'], config['password'], log_level=logging.DEBUG)
         else:
-            return "{} ({})".format(peer['display_name'], peer['username'])
+            kik_client = KikClient(KikCallback(), log_level=logging.DEBUG)
+            self.login_ui.setupUi(self)
+            self.login_ui.pushButton.clicked.connect(self.login)
+
+        self.on_authorized_signal.connect(self.on_authorized)
+        self.peers_updated_signal.connect(self.peers_updated)
+        self.messages_updated_signal.connect(self.messages_updated)
+        self.current_peer = None
+        self.peers = []
+        self.jid_peers = {}
+
+    def messages_updated(self, jid):
+        if jid == self.current_peer.jid:
+            message = config['messages'][jid][-1]
+            self.add_message(message)
+            self.main_ui.messages.scrollToBottom()
+
+    @pyqtSlot()
+    def on_authorized(self):
+        self.setup_main_ui()
+        kik_client.request_roster()
+
+    def setup_main_ui(self):
+        self.main_ui.setupUi(self)
+        self.main_ui.messageEdit.returnPressed.connect(self.send)
+        self.main_ui.users.currentItemChanged.connect(self.change_current_peer)
+
+    def change_current_peer(self, old, new):
+        index = self.main_ui.users.currentIndex().row()
+        self.current_peer = self.peers[index]
+        self.main_ui.userLabel.setText(self.display_name(self.current_peer))
+        self.main_ui.messages.clear()
+        if self.current_peer.jid in config['messages']:
+            messages = config['messages'][self.current_peer.jid]
+            for message in messages:
+                self.add_message(message)
+            self.main_ui.messages.scrollToBottom()
+
+    def add_message(self, message):
+        item = MessageItem(self.display_name_jid(message['jid']) if 'jid' in message else None, message['body'])
+        widget_item = QListWidgetItem(self.main_ui.messages)
+        widget_item.setSizeHint(item.sizeHint())
+        self.main_ui.messages.addItem(widget_item)
+        self.main_ui.messages.setItemWidget(widget_item, item)
+
+    def display_name_jid(self, jid):
+        if jid in self.jid_peers:
+            return self.display_name(self.jid_peers[jid])
+        return 'Unknown {}'.format(jid)
 
     @staticmethod
-    def jid_to_username(jid):
-        return str(jid.split("@")[0][0:-4])
+    def display_name(peer):
+        if isinstance(peer, Group):
+            user = peer  # type: Group
+            if user.code:
+                return "{} ({})".format(user.name, user.code)
+            else:
+                return user.name
+        else:
+            group = peer  # type: User
+            return "{} ({})".format(group.display_name, group.username)
 
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Escape:
-            self.close()
+    def send(self):
+        message = self.main_ui.messageEdit.text()
+        if self.current_peer:
+            kik_client.send(self.current_peer.jid, message)
+            if self.current_peer.jid not in config['messages']:
+                config['messages'][self.current_peer.jid] = []
+            config['messages'][self.current_peer.jid].append({
+                'body': message,
+                'timestamp': int(time.time() * 1000)
+            })
+            save_config()
+            self.messages_updated(self.current_peer.jid)
+            self.main_ui.users.itemWidget(self.main_ui.users.currentItem()).set_last_message_label(message)
+
+        self.main_ui.messageEdit.clear()
+
+    def handle_roster(self, members: List[Peer]):
+        self.peers = members
+        self.jid_peers = {m.jid: m for m in members}
+        self.peers_updated_signal.emit()
+
+    def peers_updated(self):
+        self.main_ui.users.clear()
+        for member in self.peers:  # type: Group
+            item = PeerListItem()
+            if member.pic:
+                item.set_icon(member.pic + "/thumb.jpg")
+            item.set_title_label(self.display_name(member))
+            if member.jid in config['messages'] and len(config['messages'][member.jid]) > 0:
+                item.set_last_message_label(config['messages'][member.jid][-1]['body'])
+            widget_item = QListWidgetItem(self.main_ui.users)
+            widget_item.setSizeHint(item.sizeHint())
+            self.main_ui.users.addItem(widget_item)
+            self.main_ui.users.setItemWidget(widget_item, item)
+
+    def login(self):
+        username = self.login_ui.username_edit.text()
+        password = self.login_ui.password_edit.text()
+        config['username'] = username
+        config['password'] = password
+        save_config()
+        print("Login in as {}:{}".format(username, password))
+        kik_client.login(username, password)
 
 
-def execute():
-    app = QApplication(sys.argv)
-    ex = KikDesktop()
-    ex.setStyleSheet(load_stylesheet('light_theme.css'))
-    sys.exit(app.exec_())
+class KikCallback(KikClientCallback):
+    def on_authorized(self):
+        app.on_authorized_signal.emit()
+
+    def on_status_message(self, response: IncomingStatusResponse):
+        pass
+
+    def on_username_uniqueness_received(self, response: UsernameUniquenessResponse):
+        pass
+
+    def on_group_message_received(self, response: IncomingGroupChatMessage):
+        if response.from_jid not in config['messages']:
+            config['messages'][response.from_jid] = []
+        config['messages'][response.from_jid].append(
+            {
+                'body': response.body,
+                'jid': response.from_jid,
+                'timestamp': response.metadata.timestamp,
+            }
+        )
+        save_config()
+        app.messages_updated_signal.emit(response.group_jid)
+
+    def on_sign_up_ended(self, response: RegisterResponse):
+        pass
+
+    def on_peer_info_received(self, response: PeerInfoResponse):
+        pass
+
+    def on_friend_attribution(self, response: IncomingFriendAttribution):
+        pass
+
+    def on_message_read(self, response: IncomingMessageReadEvent):
+        pass
+
+    def on_login_ended(self, response: LoginResponse):
+        config['node'] = response.node
+        save_config()
+
+    def on_message_delivered(self, response: IncomingMessageDeliveredEvent):
+        pass
+
+    def on_group_is_typing_event_received(self, response: IncomingGroupIsTypingEvent):
+        pass
+
+    def on_chat_message_received(self, response: IncomingChatMessage):
+        if response.from_jid not in config['messages']:
+            config['messages'][response.from_jid] = []
+        config['messages'][response.from_jid].append(
+            {
+                'body': response.body,
+                'jid': response.from_jid,
+                'timestamp': response.metadata.timestamp,
+            }
+        )
+        save_config()
+        app.messages_updated_signal.emit(response.from_jid)
+
+    def on_is_typing_event_received(self, response: IncomingIsTypingEvent):
+        pass
+
+    def on_group_status_received(self, response: IncomingGroupStatus):
+        pass
+
+    def on_group_receipts_received(self, response: IncomingGroupReceiptsEvent):
+        pass
+
+    def on_login_error(self, response: LoginError):
+        pass
+
+    def on_register_error(self, response: SignUpError):
+        pass
+
+    def on_roster_received(self, response: FetchRosterResponse):
+        app.handle_roster(response.members)
+
+    def on_connection_failed(self, response: ConnectionFailedResponse):
+        if 'node' in config:
+            del config['node']
+            save_config()
+            kik_client.login(config['username'], config['password'])
+
+
+def save_config():
+    global config
+    logger.debug("Saving config")
+    with open(config_file, 'w') as outfile:
+        json.dump(config, outfile)
+
+
+def load_config():
+    global config
+    logger.debug("Loading config")
+    if not os.path.exists(config_file):
+        save_config()
+        return
+    with open(config_file, 'r') as infile:
+        config = json.load(infile)
+
+
+def main():
+    global app
+    load_config()
+    application = QApplication(sys.argv)
+    app = App()
+    app.show()
+
+    status = application.exec_()
+    kik_client.disconnect()
+    sys.exit(status)
 
 
 if __name__ == '__main__':
-    execute()
+    main()

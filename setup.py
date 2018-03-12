@@ -11,7 +11,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
     name='kik_desktop',
 
-    version='0.0.2',
+    version='0.0.4',
 
     description='Kik Desktop',
     long_description=long_description,
@@ -44,15 +44,11 @@ setup(
         'dev': [],
         'test': [],
     },
-
-    package_data={
-        'kik_desktop': ['light_theme.css'],
-    },
     include_package_data=True,
 
     entry_points={
         'console_scripts': [
-            'kik-desktop=kik_desktop.app:execute',
+            'kik-desktop=kik_desktop.app:main',
         ],
     },
 )
