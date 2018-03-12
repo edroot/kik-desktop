@@ -1,6 +1,6 @@
 import hashlib
 import os
-import urllib
+import urllib.request
 
 from PyQt5.QtCore import Qt, QPointF, QThread
 from PyQt5.QtGui import QBrush, QPainter, QPixmap
@@ -101,7 +101,7 @@ class OnlinePixmapThread(QThread):
         self.wait()
 
     def run(self):
-        cache_dir = user_cache_dir('kik_desktop_legacy')
+        cache_dir = user_cache_dir('kik_desktop')
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
         path = cache_dir + "/" + hashlib.md5(self.url.encode('utf-8')).hexdigest() + ".jpg"
