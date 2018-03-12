@@ -125,6 +125,7 @@ QWidget#message {
     background-color: white;
     border: 1px solid #DDD;
     border-radius: 4px;
+	margin-left: 20px;
 }
 
 QWidget#ownMessage {
@@ -132,15 +133,16 @@ QWidget#ownMessage {
     color: white;
     border: 1px solid #DDD;
     border-radius: 4px;
+	margin-right: 20px;
 }
 
 QWidget#message QLabel {
-    font: 12px;
+    font: 14px;
 }
 
 QWidget#ownMessage QLabel {
     color: white;
-    font: 12px;
+    font: 14px;
 }
 
 QLabel#nameLabel {
@@ -167,16 +169,7 @@ font-size: 14px;</string>
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1024</width>
-     <height>19</height>
-    </rect>
-   </property>
-  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <resources/>
  <connections/>

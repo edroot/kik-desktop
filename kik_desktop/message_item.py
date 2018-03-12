@@ -26,11 +26,13 @@ class MessageItem(QWidget):
         client.setObjectName("ownMessage" if not self.user else "message")
         client.setLayout(layout)
         if not self.user:
+            layout.setContentsMargins(10, 2, 30, 5)
             box_layout.addWidget(client, alignment=Qt.AlignRight)
         else:
             box_layout.addWidget(client, alignment=Qt.AlignLeft)
+            layout.setContentsMargins(30, 2, 10, 5)
 
         box_layout.setSpacing(0)
-        box_layout.setContentsMargins(0, 2, 0, 8)
+        box_layout.setContentsMargins(0, 2, 0, 10)
 
         self.setLayout(box_layout)

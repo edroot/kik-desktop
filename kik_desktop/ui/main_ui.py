@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'layouts/main_ui.ui'
 #
-# Created by: PyQt5 UI code generator 5.10
+# Created by: PyQt5 UI code generator 5.9.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -79,6 +79,7 @@ class Ui_MainWindow(object):
 "    background-color: white;\n"
 "    border: 1px solid #DDD;\n"
 "    border-radius: 4px;\n"
+"    margin-left: 20px;\n"
 "}\n"
 "\n"
 "QWidget#ownMessage {\n"
@@ -86,15 +87,16 @@ class Ui_MainWindow(object):
 "    color: white;\n"
 "    border: 1px solid #DDD;\n"
 "    border-radius: 4px;\n"
+"    margin-right: 20px;\n"
 "}\n"
 "\n"
 "QWidget#message QLabel {\n"
-"    font: 12px;\n"
+"    font: 14px;\n"
 "}\n"
 "\n"
 "QWidget#ownMessage QLabel {\n"
 "    color: white;\n"
-"    font: 12px;\n"
+"    font: 14px;\n"
 "}\n"
 "\n"
 "QLabel#nameLabel {\n"
@@ -110,10 +112,9 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.messageEdit)
         self.horizontalLayout.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1024, 19))
-        self.menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(self.menubar)
+        self.statusBar = QtWidgets.QStatusBar(MainWindow)
+        self.statusBar.setObjectName("statusBar")
+        MainWindow.setStatusBar(self.statusBar)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
