@@ -8,19 +8,22 @@ from typing import List
 import appdirs
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidgetItem
-from kik_unofficial.callbacks import KikClientCallback
-from kik_unofficial.client import KikClient
-from kik_unofficial.datatypes.errors import SignUpError, LoginError
-from kik_unofficial.datatypes.peers import Peer, Group, User
-from kik_unofficial.datatypes.xmpp.chatting import IncomingStatusResponse, IncomingGroupReceiptsEvent, IncomingGroupStatus, IncomingIsTypingEvent, \
-    IncomingChatMessage, IncomingGroupIsTypingEvent, IncomingMessageDeliveredEvent, IncomingMessageReadEvent, IncomingFriendAttribution, \
-    IncomingGroupChatMessage
-from kik_unofficial.datatypes.xmpp.roster import FetchRosterResponse, PeerInfoResponse
-from kik_unofficial.datatypes.xmpp.sign_up import ConnectionFailedResponse, RegisterResponse, UsernameUniquenessResponse, LoginResponse
 
 from kik_desktop.message_item import MessageItem
 from kik_desktop.peer_list_item import PeerListItem
 from kik_desktop.ui import login_ui, main_ui
+from kik_unofficial.callbacks import KikClientCallback
+from kik_unofficial.client import KikClient
+from kik_unofficial.datatypes.errors import SignUpError, LoginError
+from kik_unofficial.datatypes.peers import Peer, Group, User
+from kik_unofficial.datatypes.xmpp.chatting import IncomingStatusResponse, IncomingGroupReceiptsEvent, \
+    IncomingGroupStatus, IncomingIsTypingEvent, \
+    IncomingChatMessage, IncomingGroupIsTypingEvent, IncomingMessageDeliveredEvent, IncomingMessageReadEvent, \
+    IncomingFriendAttribution, \
+    IncomingGroupChatMessage
+from kik_unofficial.datatypes.xmpp.roster import FetchRosterResponse, PeerInfoResponse
+from kik_unofficial.datatypes.xmpp.sign_up import ConnectionFailedResponse, RegisterResponse, \
+    UsernameUniquenessResponse, LoginResponse
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('kik_desktop')
@@ -41,10 +44,18 @@ class App(QMainWindow):
         global kik_client
         self.main_ui = main_ui.Ui_MainWindow()
         self.login_ui = login_ui.Ui_LoginWindow()
+
+        # Change dir to get Kik Api logging into the right directory
+        log_dir = appdirs.user_log_dir("kik_desktop")
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        os.chdir(log_dir)
+
         if 'username' in config and 'password' in config:
             self.main_ui.setupUi(self)
             if 'node' in config:
-                kik_client = KikClient(KikCallback(), config['username'], config['password'], config['node'], log_level=logging.DEBUG)
+                kik_client = KikClient(KikCallback(), config['username'], config['password'], config['node'],
+                                       log_level=logging.DEBUG)
             else:
                 kik_client = KikClient(KikCallback(), config['username'], config['password'], log_level=logging.DEBUG)
         else:
