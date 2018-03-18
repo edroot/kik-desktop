@@ -1,7 +1,13 @@
+import os
+import sys
 from codecs import open
 from os import path
 
-from setuptools import setup, find_packages
+from cx_Freeze import setup, Executable
+
+PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
+os.environ['TCL_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tcl8.6')
+os.environ['TK_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tk8.6')
 
 here = path.abspath(path.dirname(__file__))
 
@@ -36,19 +42,14 @@ setup(
 
     keywords='kik desktop chat',
 
-    packages=find_packages(exclude=['docs', 'test']),
-
     install_requires=['PyQt5', 'appdirs', 'kik-unofficial'],
 
-    extras_require={
-        'dev': [],
-        'test': [],
-    },
-    include_package_data=True,
-
-    entry_points={
-        'console_scripts': [
-            'kik-desktop=kik_desktop.app:main',
-        ],
-    },
+    executables = [
+        Executable("kik_desktop/app.py",
+            icon="icon/ic_launcher.ico",
+            targetName="Kik Desktop.exe",
+            shortcutName="Kik Desktop",
+            shortcutDir="StartMenuFolder"
+            )
+        ]
 )
