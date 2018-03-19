@@ -8,22 +8,19 @@ from typing import List
 import appdirs
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QMainWindow, QListWidgetItem
-
-from kik_desktop.message_item import MessageItem
-from kik_desktop.peer_list_item import PeerListItem
-from kik_desktop.ui import login_ui, main_ui
 from kik_unofficial.callbacks import KikClientCallback
 from kik_unofficial.client import KikClient
 from kik_unofficial.datatypes.errors import SignUpError, LoginError
 from kik_unofficial.datatypes.peers import Peer, Group, User
-from kik_unofficial.datatypes.xmpp.chatting import IncomingStatusResponse, IncomingGroupReceiptsEvent, \
-    IncomingGroupStatus, IncomingIsTypingEvent, \
-    IncomingChatMessage, IncomingGroupIsTypingEvent, IncomingMessageDeliveredEvent, IncomingMessageReadEvent, \
-    IncomingFriendAttribution, \
+from kik_unofficial.datatypes.xmpp.chatting import IncomingStatusResponse, IncomingGroupReceiptsEvent, IncomingGroupStatus, IncomingIsTypingEvent, \
+    IncomingChatMessage, IncomingGroupIsTypingEvent, IncomingMessageDeliveredEvent, IncomingMessageReadEvent, IncomingFriendAttribution, \
     IncomingGroupChatMessage
 from kik_unofficial.datatypes.xmpp.roster import FetchRosterResponse, PeerInfoResponse
-from kik_unofficial.datatypes.xmpp.sign_up import ConnectionFailedResponse, RegisterResponse, \
-    UsernameUniquenessResponse, LoginResponse
+from kik_unofficial.datatypes.xmpp.sign_up import ConnectionFailedResponse, RegisterResponse, UsernameUniquenessResponse, LoginResponse
+
+from kik_desktop.message_item import MessageItem
+from kik_desktop.peer_list_item import PeerListItem
+from kik_desktop.ui import login_ui, main_ui
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('kik_desktop')
@@ -72,8 +69,10 @@ class App(QMainWindow):
 
     def messages_updated(self, jid):
         if jid == self.current_peer.jid:
+            last_message = config['messages'][jid][-2] if len(config['messages'][jid]) >= 2 else None
+            last_message_jid = last_message['jid'] if last_message and 'jid' in last_message else None
             message = config['messages'][jid][-1]
-            self.add_message(message)
+            self.add_message(message, 'jid' in message and message['jid'] == last_message_jid)
             self.main_ui.messages.scrollToBottom()
 
     @pyqtSlot()
@@ -93,12 +92,14 @@ class App(QMainWindow):
         self.main_ui.messages.clear()
         if self.current_peer.jid in config['messages']:
             messages = config['messages'][self.current_peer.jid]
+            last_jid = None
             for message in messages:
-                self.add_message(message)
+                self.add_message(message, 'jid' in message and message['jid'] != last_jid)
+                last_jid = message['jid'] if 'jid' in message else None
             self.main_ui.messages.scrollToBottom()
 
-    def add_message(self, message):
-        item = MessageItem(self.display_name_jid(message['jid']) if 'jid' in message else None, message['body'])
+    def add_message(self, message, show_name=True):
+        item = MessageItem(self.display_name_jid(message['jid']) if 'jid' in message else None, message['body'], message['timestamp'], show_name)
         widget_item = QListWidgetItem(self.main_ui.messages)
         widget_item.setSizeHint(item.sizeHint())
         self.main_ui.messages.addItem(widget_item)
@@ -177,9 +178,9 @@ class KikCallback(KikClientCallback):
         pass
 
     def on_group_message_received(self, response: IncomingGroupChatMessage):
-        if response.from_jid not in config['messages']:
-            config['messages'][response.from_jid] = []
-        config['messages'][response.from_jid].append(
+        if response.group_jid not in config['messages']:
+            config['messages'][response.group_jid] = []
+        config['messages'][response.group_jid].append(
             {
                 'body': response.body,
                 'jid': response.from_jid,
@@ -234,7 +235,7 @@ class KikCallback(KikClientCallback):
         pass
 
     def on_login_error(self, response: LoginError):
-        pass
+        logger.debug("Login error")
 
     def on_register_error(self, response: SignUpError):
         pass
@@ -243,10 +244,13 @@ class KikCallback(KikClientCallback):
         app.handle_roster(response.members)
 
     def on_connection_failed(self, response: ConnectionFailedResponse):
+        logger.debug("Connection failed")
         if 'node' in config:
             del config['node']
             save_config()
-            kik_client.login(config['username'], config['password'])
+            logger.info("Node deleted")
+        logger.info("Connection failed, try again")
+        application.exit(1)
 
 
 def save_config():
@@ -267,7 +271,7 @@ def load_config():
 
 
 def main():
-    global app
+    global app, application
     load_config()
     application = QApplication(sys.argv)
     app = App()

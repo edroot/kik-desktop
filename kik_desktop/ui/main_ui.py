@@ -47,6 +47,9 @@ class Ui_MainWindow(object):
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.lineEdit_2 = QtWidgets.QLineEdit(self.horizontalLayoutWidget)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.lineEdit_2.setFont(font)
         self.lineEdit_2.setStyleSheet("margin: 10px;\n"
 "background-color: rgb(242, 242, 242);\n"
 "padding: 4px;\n"
@@ -65,49 +68,32 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.userLabel = QtWidgets.QLabel(self.horizontalLayoutWidget_2)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.userLabel.setFont(font)
         self.userLabel.setStyleSheet("font-weight: bold;\n"
 "margin: 10px;")
-        self.userLabel.setScaledContents(False)
         self.userLabel.setObjectName("userLabel")
         self.verticalLayout_2.addWidget(self.userLabel)
         self.messages = QtWidgets.QListWidget(self.horizontalLayoutWidget_2)
+        font = QtGui.QFont()
+        font.setKerning(True)
+        font.setStyleStrategy(QtGui.QFont.PreferAntialias)
+        self.messages.setFont(font)
         self.messages.setStyleSheet("#messages {\n"
 "    background-color: rgb(223, 229, 219);\n"
-"}\n"
-"\n"
-"QWidget#message {\n"
-"    background-color: white;\n"
-"    border: 1px solid #DDD;\n"
-"    border-radius: 4px;\n"
-"    margin-left: 20px;\n"
-"}\n"
-"\n"
-"QWidget#ownMessage {\n"
-"    background-color: #59c817;\n"
-"    color: white;\n"
-"    border: 1px solid #DDD;\n"
-"    border-radius: 4px;\n"
-"    margin-right: 20px;\n"
-"}\n"
-"\n"
-"QWidget#message QLabel {\n"
-"    font: 14px;\n"
-"}\n"
-"\n"
-"QWidget#ownMessage QLabel {\n"
-"    color: white;\n"
-"    font: 14px;\n"
-"}\n"
-"\n"
-"QLabel#nameLabel {\n"
-"    font: bold;\n"
-"}\n"
-"")
+"}")
+        self.messages.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.messages.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.messages.setObjectName("messages")
         self.verticalLayout_2.addWidget(self.messages)
         self.messageEdit = QtWidgets.QLineEdit(self.horizontalLayoutWidget_2)
-        self.messageEdit.setStyleSheet("padding: 8px;\n"
-"font-size: 14px;")
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.messageEdit.setFont(font)
+        self.messageEdit.setStyleSheet("padding: 8px;")
         self.messageEdit.setObjectName("messageEdit")
         self.verticalLayout_2.addWidget(self.messageEdit)
         self.horizontalLayout.addWidget(self.splitter)

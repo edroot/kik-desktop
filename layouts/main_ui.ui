@@ -69,6 +69,11 @@ QSplitter::handle:horizontal {
         </property>
         <item>
          <widget class="QLineEdit" name="lineEdit_2">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
           <property name="styleSheet">
            <string notr="true">margin: 10px;
 background-color: rgb(242, 242, 242);
@@ -99,15 +104,19 @@ border-radius: 6px;</string>
         </property>
         <item>
          <widget class="QLabel" name="userLabel">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
           <property name="styleSheet">
            <string notr="true">font-weight: bold;
 margin: 10px;</string>
           </property>
           <property name="text">
            <string>Username</string>
-          </property>
-          <property name="scaledContents">
-           <bool>false</bool>
           </property>
           <property name="margin">
            <number>10</number>
@@ -116,47 +125,34 @@ margin: 10px;</string>
         </item>
         <item>
          <widget class="QListWidget" name="messages">
+          <property name="font">
+           <font>
+            <stylestrategy>PreferAntialias</stylestrategy>
+            <kerning>true</kerning>
+           </font>
+          </property>
           <property name="styleSheet">
            <string notr="true">#messages {
 	background-color: rgb(223, 229, 219);
-}
-
-QWidget#message {
-    background-color: white;
-    border: 1px solid #DDD;
-    border-radius: 4px;
-	margin-left: 20px;
-}
-
-QWidget#ownMessage {
-    background-color: #59c817;
-    color: white;
-    border: 1px solid #DDD;
-    border-radius: 4px;
-	margin-right: 20px;
-}
-
-QWidget#message QLabel {
-    font: 14px;
-}
-
-QWidget#ownMessage QLabel {
-    color: white;
-    font: 14px;
-}
-
-QLabel#nameLabel {
-    font: bold;
-}
-</string>
+}</string>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="verticalScrollMode">
+           <enum>QAbstractItemView::ScrollPerPixel</enum>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QLineEdit" name="messageEdit">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
           <property name="styleSheet">
-           <string notr="true">padding: 8px;
-font-size: 14px;</string>
+           <string notr="true">padding: 8px;</string>
           </property>
           <property name="placeholderText">
            <string>Write a message...</string>
